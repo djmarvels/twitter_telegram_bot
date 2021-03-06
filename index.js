@@ -1,43 +1,23 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const util = require("util");
-const request = require("request");
-const path = require("path");
-const socketIo = require("socket.io");
-const http = require("http");
+var Twitter = require('twitter');
+const { Telegraf } = require('telegraf')
+require('dotenv').config()
+const client = new Twitter({
+    consumer_key: process.env.API_KEY,
+    consumer_secret: process.env.API_SECRET,
+    access_token_key: process.env.ACCESS_TOKEN,
+    access_token_secret: process.env.ACCESS_SECRET,
+    timeout: 0
+});
 
-const app = express();
-let port = 3000;
-
-const post = util.promisify(request.post);
-const get = util.promisify(request.get);
-
-const server = http.createServer(app);
-const io = socketIo(server);
-
-let timeout = 0;
-
-const streamURL = new URL(
-    "https://api.twitter.com/2/tweets/search/stream?tweet.fields=context_annotations&expansions=author_id"
-);
-
-const rulesURL = new URL(
-    "https://api.twitter.com/2/tweets/search/stream/rules"
-);
-
-const errorMessage = {
-    title: "Please Wait",
-    detail: "Waiting for new Tweets to be posted...",
-};
-
-
-
-
-
-const init = async () => {
-    const Bearer_Token = await require('./core/bearer')
-    console.log(Bearer_Token)
-}
-
-init()
-
+const bot = new Telegraf(process.env.TELEGRAM_TOKEN)
+client.stream('statuses/filter', { follow: process.env.TWITTER_USERID },  function(stream) {
+    stream.on('data', (tweet) => {
+        console.log(tweet)
+        if (tweet.user.screen_name === process.env.TWITTER_SCREEN_NAME) {
+            bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID, `https://twitter.com/${tweet.user.screen_name}/status/${tweet.id_str}`)
+        }
+    });
+    stream.on('error', (error) => {
+        console.log(error);
+    });
+});
