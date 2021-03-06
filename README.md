@@ -1,7 +1,7 @@
 # Twitter-Telegram Bot
 ## Парсинг постов Twitter аккаунта и уведомление в канал Telegram
 
-### Настройка ключей API происходит в файле `.env`
+### Настройка скрипта происходит в файле `.env`
 
 ```API_KEY=ключ API из twitter dev API
 API_SECRET=секретный ключ API из twitter dev API
